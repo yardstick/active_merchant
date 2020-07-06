@@ -110,13 +110,16 @@ module ActiveMerchant
 
       http.use_ssl = true
 
-      http.instance_eval do
-        @ssl_context.set_params(:options => OpenSSL::SSL::OP_NO_SSLv3 + OpenSSL::SSL::OP_NO_SSLv2)
-      end
-
       if verify_peer
         http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        http.ca_file     = File.dirname(__FILE__) + '/../../certs/cacert.pem'
+        # This was always here, most likely because the authors of activemerchant didn't want connectivity to rely
+        # on server architecture to keep up to date with root certs. However when we upgraded to ruby 1.9.3 we were
+        # getting SSL errors with IATA's shopping cart (the only cart still using activemerchant, everyone else is on Stripe)
+        # commenting out this line fixes the SSL error connecting to CyberSource.
+        # Leaving this here just in case.. we get to the point where our base image for ruby gets outdated and we need to
+        # update custom certs again, but hopefully IATA either takes their shopping cart out of our platforms or at least moves
+        # to embedded pay.
+        # http.ca_file     = File.dirname(__FILE__) + '/../../certs/cacert.pem'
       else
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
